@@ -3,6 +3,7 @@
     Brian Tingle (c) 2012 UC Regents all rights reserved
     BSD license at bottom of file
 """
+# what order should the imports be in
 import sys
 import argparse
 import fnmatch
@@ -10,13 +11,14 @@ import os
 import glob
 from lxml import etree
 
-
-# load ead.dtd.xml into "dtd"
+# load ead.dtd.xml into "dtd" global variable
 dtd = etree.parse('ead.dtd.xml');
 
 def main(argv=None):
     # argument parser 
-    parser = argparse.ArgumentParser(description='analyze EAD tag useage')
+    parser = argparse.ArgumentParser(
+        description='analyze EAD tag useage',
+        epilog='recursively searches "*.xml" files in given dirs for EAD tags')
     parser.add_argument('dir', nargs='+', 
                      help='EAD XML corpus directory')
     parser.add_argument('-outfile', nargs='?', type=argparse.FileType('w'),
