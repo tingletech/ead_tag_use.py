@@ -5,6 +5,7 @@
 """
 import sys
 import argparse
+import fnmatch
 import os
 import glob
 from lxml import etree
@@ -30,17 +31,21 @@ def main(argv=None):
 
     # loop through all files
     # http://stackoverflow.com/questions/2212643/
+    # http://stackoverflow.com/questions/2186525
     for dir in argv.dir:
         for root, subFolders, files in os.walk(dir):
-            for filename in files:
+            for filename in fnmatch.filter(files, '*.xml'):
                 filePath = os.path.join(root, filename)
-                analyze_file(filePath, stats)
+                stats = analyze_file(filePath, stats)
 
 def analyze_file(file, stats):
+    if os.stat(file)[6]==0:
+        return stats
     print file, stats, dtd
+    xml = etree.parse(file)
     return stats
 
-# main() idiom for importing into REPL for debugging 
+# main() idiom for importing into read-eval-print loop for debugging 
 if __name__ == "__main__":
     sys.exit(main())
 
