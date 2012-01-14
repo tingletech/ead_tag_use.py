@@ -5,6 +5,13 @@
 """
 import sys
 import argparse
+import os
+import glob
+from lxml import etree
+
+
+# load ead.dtd.xml into "dtd"
+dtd = etree.parse('ead.dtd.xml');
 
 def main(argv=None):
     # argument parser 
@@ -17,23 +24,20 @@ def main(argv=None):
 
     if argv is None:
         argv = parser.parse_args()
-
-    # load ead.dtd.xml into "dtd"
-    dtd = ""
      
     # set up dictionary to hold the stats
     stats = {}
 
     # loop through all files
-    # argv.dir
-
-    analyze_file('test.xml', stats)
-
-    # output stats to argv.outfile
-    # argv.outfile
-
+    # http://stackoverflow.com/questions/2212643/
+    for dir in argv.dir:
+        for root, subFolders, files in os.walk(dir):
+            for filename in files:
+                filePath = os.path.join(root, filename)
+                analyze_file(filePath, stats)
 
 def analyze_file(file, stats):
+    print file, stats, dtd
     return stats
 
 # main() idiom for importing into REPL for debugging 
