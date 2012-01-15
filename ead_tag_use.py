@@ -79,25 +79,25 @@ def count_elements(node, stats):
     attributes = DTD.xpath(''.join(["/dtd/attlist[@name='", key, "']/attribute/@name"]))
 
     # get stats counter for the current element type
-    element_stats = stats.setdefault(key, [0, 
-                [Counter(),    # <- parent elements	[0]
-                 Counter(),    # <- child elements	[1]
-                 Counter(),    # <- child attributes	[2]
-                 Counter()]])  # <- PCDATA		[3]
-
+    element_stats = stats.setdefault(key,  # <-- element name is dict key
+             [0,               # <-- count for this element [0]    corpus
+                [Counter(),    # <- parent elements         [1][0] corpus
+                 Counter(),    # <- child elements          [1][1] dtd
+                 Counter(),    # <- child attributes        [1][2] dtd
+                 Counter()]])  # <- PCDATA                  [1][3] corpus
+                               #               array address-^--^
+                               # some counters look for everything possible based on dtd
+                               # some counters only observe the input corpus
     # update the stats data structure
     # increment the count for this element
-    stats[key][0] = element_stats[0] + 1		# count for this element
+    stats[key][0] = element_stats[0] + 1		# count for this element 
     # note the parent element
-    stats[key][1][0][parent] += 1			# Counter() [0] (not DTD based, won't show zeros)
+    stats[key][1][0][parent] += 1			# Counter() [0]
     # count child elements and attributes
     for element in elements:				# Counter() [1]
         stats[key][1][1][element] += len(node.xpath(element))
     for attribute in attributes:			# Counter() [2]
-        stats[key][1][2][attribute] += len(
-            node.xpath(''.join( [ '@*[local-name()="', 
-                                  attribute,
-                                  '"]' ])))
+        stats[key][1][2][attribute] += len(node.xpath(''.join(['@*[local-name()="', attribute, '"]'])))
     # note if there is text()
     stats[key][1][3][pcdata] += 1			# Counter() [3]
 
