@@ -31,17 +31,17 @@ def main(argv=None):
     if argv is None:
         argv = parser.parse_args()
      
-    # set up dictionaries to hold the stats
+    # set up dictionary to hold the stats
     stats = {}
 
     # loop through all files
     # http://stackoverflow.com/questions/2212643/
-    # http://stackoverflow.com/questions/2186525/
     # multiple dir arguments can be supplied
     for dir in argv.dir:
         # walk through all the files in the directory
         for root, subFolders, files in os.walk(dir):
             # check the file has a .xml extension
+            # http://stackoverflow.com/questions/2186525/
             for filename in fnmatch.filter(files, '*.xml'):
                 filePath = os.path.join(root, filename)
                 analyze_file(filePath, stats)
@@ -69,6 +69,8 @@ def count_elements(node, stats):
     # key the hash on the local name of the element
     key = node.xpath('local-name(.)')
     parent = node.xpath('local-name(..)')
+    # http://stackoverflow.com/questions/1947030/
+    pcdata = "PCDATA" if node.xpath('boolean(./text())') else "no text()"
 
     # look up what elements we might see, based on the DTD
     elements = DTD.xpath(''.join(["/dtd/element[@name='", key, "']/content-model-expanded//element-name/@name"]))
@@ -77,18 +79,21 @@ def count_elements(node, stats):
     attributes = DTD.xpath(''.join(["/dtd/attlist[@name='", key, "']/attribute/@name"]))
 
     # get stats counter for the current element type
-    element_stats = stats.setdefault(key, [0, [Counter(), Counter(), Counter()]]) 
+    element_stats = stats.setdefault(key, [0, [Counter(), Counter(), Counter(), Counter()]]) 
+    #                                          ^parent    ^elements  ^attr,     ^#PCDATA
+
+    # update the stats data structure
     # increment the count for this element
     stats[key][0] = element_stats[0] + 1
-
+    # note the parent element
     stats[key][1][0][parent] += 1
-    
-    # count child elements
+    # count child elements and attributes
     for element in elements:
         stats[key][1][1][element] += len(node.xpath(element))
-
     for attribute in attributes:
         stats[key][1][2][attribute] += len(node.xpath(''.join(['@', attribute])))
+    # note if there is text()
+    stats[key][1][3][pcdata] += 1
 
     # done counnting this node, loop through child nodes
     for desc in list(node):
