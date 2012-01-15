@@ -84,8 +84,8 @@ def count_elements(node, stats):
                 [Counter(),    # <- parent elements         [1][0] corpus
                  Counter(),    # <- child elements          [1][1] dtd
                  Counter(),    # <- child attributes        [1][2] dtd
-                 Counter()]])  # <- PCDATA                  [1][3] corpus
-                               #               array address-^--^
+                 Counter()]]   # <- PCDATA                  [1][3] corpus
+    )                          #               array address-^--^
                                # some counters look for everything possible based on dtd
                                # some counters only observe the input corpus
     # update the stats data structure
