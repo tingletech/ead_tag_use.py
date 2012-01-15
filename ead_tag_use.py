@@ -5,7 +5,6 @@
 """
 					# standard modules
 import argparse
-from collections import defaultdict
 import fnmatch
 import glob
 import os
@@ -31,8 +30,8 @@ def main(argv=None):
         argv = parser.parse_args()
      
     # set up dictionaries to hold the stats
-    # stats = {}
-    stats = defaultdict(int)
+    stats = {}
+    # stats = ( Counter() , defaultdict(list) )
 
     # loop through all files
     # http://stackoverflow.com/questions/2212643/
@@ -45,6 +44,7 @@ def main(argv=None):
             for filename in fnmatch.filter(files, '*.xml'):
                 filePath = os.path.join(root, filename)
                 analyze_file(filePath, stats)
+
     print stats
 
 def analyze_file(file, stats):
@@ -66,7 +66,11 @@ def count_elements(node, stats):
         return
 
     # count elements and attributes used based on DTD
-    stats[node.tag] += 1
+    # print stats
+    key = node.xpath('local-name(.)')
+    count = stats.setdefault(key, [0, []]) 
+    stats[key][0] = count[0] + 1
+    # print stats[0]
 
     for desc in list(node):
         # recursive call
