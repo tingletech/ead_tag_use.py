@@ -50,58 +50,59 @@ def main(argv=None):
 
 def analyze_file(file, stats):
     """analze the a file, update stats dictionary"""
-
     # check that the file is not zero length
     # http://stackoverflow.com/questions/2507808/
     if os.stat(file)[6]==0:
-        return stats
+        return
+    # open the file
     xml = etree.parse(file)
     # recursivly decend the xml (modifies stats "in place")
     count_elements(xml.getroot(),stats)
 
 def count_elements(node, stats):
     """count elements and attributes used based on DTD"""
-
     # test that we are an element and not a comment nor processing instruction
     if isinstance(node, (etree._Comment, etree._ProcessingInstruction)):
         return
 
     # key the hash on the local name of the element
     key = node.xpath('local-name(.)')
-    parent = node.xpath('local-name(..)')
-    # http://stackoverflow.com/questions/1947030/
-    pcdata = "PCDATA" if node.xpath('boolean(./text())') else "no text()"
 
-    # look up what elements we might see, based on the DTD
-    elements = DTD.xpath(''.join(["/dtd/element[@name='", key, "']/content-model-expanded//element-name/@name"]))
-
-    # look up what aattributes we might see, based on the DTD
-    attributes = DTD.xpath(''.join(["/dtd/attlist[@name='", key, "']/attribute/@name"]))
-
-    # get stats counter for the current element type
+    # get stats counter for the current element name, or set the default
     element_stats = stats.setdefault(key,  # <-- element name is dict key
              [0,               # <-- count for this element [0]    corpus
-                [Counter(),    # <- parent elements         [1][0] corpus
-                 Counter(),    # <- child elements          [1][1] dtd
-                 Counter(),    # <- child attributes        [1][2] dtd
-                 Counter()]]   # <- PCDATA                  [1][3] corpus
+                [Counter(),    # <-- parent elements        [1][0] corpus
+                 Counter(),    # <-- child elements         [1][1] dtd
+                 Counter(),    # <-- child attributes       [1][2] dtd
+                 Counter()]]   # <-- PCDATA                 [1][3] corpus
     )                          #               array address-^--^
-                               # some counters look for everything possible based on dtd
-                               # some counters only observe the input corpus
-    # update the stats data structure
+             # some counters look for everything possible based on dtd
+                            # some counters only observe the input corpus
+
+
+    ## update the stats data structure
+
     # increment the count for this element
     stats[key][0] = element_stats[0] + 1		# count for this element 
+
     # note the parent element
+    parent = node.xpath('local-name(..)')
     stats[key][1][0][parent] += 1			# Counter() [0]
+
+    # look up what elements and attributes we might see, based on the DTD
+    elements = DTD.xpath(''.join(["/dtd/element[@name='", key, "']/content-model-expanded//element-name/@name"]))
+    attributes = DTD.xpath(''.join(["/dtd/attlist[@name='", key, "']/attribute/@name"]))
     # count child elements and attributes
     for element in elements:				# Counter() [1]
         stats[key][1][1][element] += len(node.xpath(element))
     for attribute in attributes:			# Counter() [2]
         stats[key][1][2][attribute] += len(node.xpath(''.join(['@*[local-name()="', attribute, '"]'])))
+
     # note if there is text()
+    pcdata = "PCDATA" if node.xpath('boolean(./text())') else "no text()"
     stats[key][1][3][pcdata] += 1			# Counter() [3]
 
-    # done counnting this node, loop through child nodes
+    ## done counnting this element node, loop through child nodes
     for desc in list(node):
         # recursive call
         count_elements(desc, stats)
