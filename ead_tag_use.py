@@ -89,7 +89,7 @@ def count_elements(node, stats):
     # increment the count for this element
     stats[key][0] = element_stats[0] + 1		# count for this element
     # note the parent element
-    stats[key][1][0][parent] += 1			# Counter() [0]
+    stats[key][1][0][parent] += 1			# Counter() [0] (not DTD based, won't show zeros)
     # count child elements and attributes
     for element in elements:				# Counter() [1]
         stats[key][1][1][element] += len(node.xpath(element))
