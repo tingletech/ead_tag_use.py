@@ -79,8 +79,12 @@ def count_elements(node, stats):
     attributes = DTD.xpath(''.join(["/dtd/attlist[@name='", key, "']/attribute/@name"]))
 
     # get stats counter for the current element type
-    element_stats = stats.setdefault(key, [0, [Counter(), Counter(), Counter(), Counter()]]) 
-    #                                          ^parent    ^elements  ^attr,     ^#PCDATA
+    # get stats counter for the current element type
+    element_stats = stats.setdefault(key, [0, 
+                [Counter(),    # <- parent elements
+                 Counter(),    # <- child elements
+                 Counter(),    # <- child attributes
+                 Counter()]])  # <- PCDATA
 
     # update the stats data structure
     # increment the count for this element
