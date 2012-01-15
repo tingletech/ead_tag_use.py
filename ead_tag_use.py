@@ -5,16 +5,18 @@
 """
 					# standard modules
 import argparse
+from collections import Counter
 import fnmatch
 import glob
 import os
-import sys 				
+import pprint
+import sys 
 					# Pypi packages
 					# http://pypi.python.org/pypi/lxml
 from lxml import etree
 
 # load ead.dtd.xml into DTD constant
-DTD = etree.parse('ead.dtd.xml');
+DTD = etree.parse('ead.dtd.xml').getroot();
 # xml version of the DTD created with http://nwalsh.com/perl/dtdparse/
 
 def main(argv=None):
@@ -31,7 +33,6 @@ def main(argv=None):
      
     # set up dictionaries to hold the stats
     stats = {}
-    # stats = ( Counter() , defaultdict(list) )
 
     # loop through all files
     # http://stackoverflow.com/questions/2212643/
@@ -44,8 +45,8 @@ def main(argv=None):
             for filename in fnmatch.filter(files, '*.xml'):
                 filePath = os.path.join(root, filename)
                 analyze_file(filePath, stats)
-
-    print stats
+    pp = pprint.PrettyPrinter(indent=4, stream=argv.outfile)
+    pp.pprint(stats)
 
 def analyze_file(file, stats):
     """analze the a file, update stats dictionary"""
@@ -59,19 +60,33 @@ def analyze_file(file, stats):
     count_elements(xml.getroot(),stats)
 
 def count_elements(node, stats):
-    """process the node, refering to the DTD, updating stats"""
+    """count elements and attributes used based on DTD"""
 
     # test that we are an element and not a comment nor processing instruction
     if isinstance(node, (etree._Comment, etree._ProcessingInstruction)):
         return
 
-    # count elements and attributes used based on DTD
-    # print stats
+    # key the hash on the local name of the element
     key = node.xpath('local-name(.)')
-    count = stats.setdefault(key, [0, []]) 
-    stats[key][0] = count[0] + 1
-    # print stats[0]
 
+    # look up what elements we might see, based on the DTD
+    elements = DTD.xpath(''.join(["/dtd/element[@name='", key, "']/content-model-expanded//element-name/@name"]))
+
+    # look up what aattributes we might see, based on the DTD
+    attributes = DTD.xpath(''.join(["/dtd/attlist[@name='", key, "']/attribute/@name"]))
+
+    # get stats counter for the current element type
+    element_stats = stats.setdefault(key, [0, [Counter(), Counter()]]) 
+    # increment the count for this element
+    stats[key][0] = element_stats[0] + 1
+    # count child elements
+    for element in elements:
+        stats[key][1][0][element] += len(node.xpath(element))
+
+    for attribute in attributes:
+        stats[key][1][1][attribute] += len(node.xpath(''.join(['@', attribute])))
+
+    # done counnting this node, loop through child nodes
     for desc in list(node):
         # recursive call
         count_elements(desc, stats)
