@@ -10,3 +10,5 @@ optional arguments:
   -outfile [OUTFILE]  output tag useage report
 
 recursively searches "*.xml" files in given dirs for EAD tags
+
+Sample output https://gist.github.com/1614098
