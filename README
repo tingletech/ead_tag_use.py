@@ -1,0 +1,12 @@
+usage: ead_tag_use.py [-h] [-outfile [OUTFILE]] dir [dir ...]
+
+analyze EAD tag useage
+
+positional arguments:
+  dir                 EAD XML corpus directory
+
+optional arguments:
+  -h, --help          show this help message and exit
+  -outfile [OUTFILE]  output tag useage report
+
+recursively searches "*.xml" files in given dirs for EAD tags
