@@ -94,7 +94,10 @@ def count_elements(node, stats):
     for element in elements:				# Counter() [1]
         stats[key][1][1][element] += len(node.xpath(element))
     for attribute in attributes:			# Counter() [2]
-        stats[key][1][2][attribute] += len(node.xpath(''.join(['@', attribute])))
+        stats[key][1][2][attribute] += len(
+            node.xpath(''.join( [ '@*[local-name()="', 
+                                  attribute,
+                                  '"]' ])))
     # note if there is text()
     stats[key][1][3][pcdata] += 1			# Counter() [3]
 
