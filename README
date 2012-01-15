@@ -11,4 +11,11 @@ optional arguments:
 
 recursively searches "*.xml" files in given dirs for EAD tags
 
-Sample output https://gist.github.com/1614098
+Sample output: 
+    https://gist.github.com/1614098
+
+Dependencies: 
+    lxml
+
+Acknowledgements: 
+    inspired by the tag analysis work of Kathy Wisser from Simmons.
