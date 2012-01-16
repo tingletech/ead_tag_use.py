@@ -88,7 +88,7 @@ def count_elements(node, stats):
     # count child elements and attributes
     # look up what elements and attributes we might see, based on the DTD
     for element in allowed_elements(key):               # Counter() [1]
-        stats[key][1][1][element] += len(node.xpath(element))
+        stats[key][1][1][element] += len(node.xpath(''.join(['*[local-name()="',element,'"]'])))
     for attribute in allowed_attributes(key):           # Counter() [2]
         stats[key][1][2][attribute] += len(node.xpath(''.join(['@*[local-name()="', attribute, '"]'])))
     # note if there is text()
