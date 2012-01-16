@@ -16,7 +16,8 @@ import sys
 from lxml import etree
 
 # load ead.dtd.xml into DTD constant
-DTD = etree.parse('ead.dtd.xml').getroot();
+pathname = os.path.dirname(sys.argv[0])
+DTD = etree.parse(os.path.join(pathname, 'ead.dtd.xml')).getroot();
 # xml version of the DTD created with http://nwalsh.com/perl/dtdparse/
 
 def main(argv=None):
