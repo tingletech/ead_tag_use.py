@@ -79,25 +79,18 @@ def count_elements(node, stats):
              # some counters look for everything possible based on dtd
                             # some counters only observe the input corpus
 
-
     ## update the stats data structure
-
     # increment the count for this element
-    stats[key][0] = element_stats[0] + 1		# count for this element 
-
+    stats[key][0] = element_stats[0] + 1                # count for this element 
     # note the parent element
     parent = node.xpath('local-name(..)')
-    stats[key][1][0][parent] += 1			# Counter() [0]
-
-    # look up what elements and attributes we might see, based on the DTD
-    elements = DTD.xpath(''.join(["/dtd/element[@name='", key, "']/content-model-expanded//element-name/@name"]))
-    attributes = DTD.xpath(''.join(["/dtd/attlist[@name='", key, "']/attribute/@name"]))
+    stats[key][1][0][parent] += 1                       # Counter() [0]
     # count child elements and attributes
-    for element in elements:				# Counter() [1]
+    # look up what elements and attributes we might see, based on the DTD
+    for element in allowed_elements(key):               # Counter() [1]
         stats[key][1][1][element] += len(node.xpath(element))
-    for attribute in attributes:			# Counter() [2]
+    for attribute in allowed_attributes(key):           # Counter() [2]
         stats[key][1][2][attribute] += len(node.xpath(''.join(['@*[local-name()="', attribute, '"]'])))
-
     # note if there is text()
     pcdata = "PCDATA" if node.xpath('boolean(./text())') else "no text()"
     stats[key][1][3][pcdata] += 1			# Counter() [3]
@@ -106,6 +99,44 @@ def count_elements(node, stats):
     for desc in list(node):
         # recursive call
         count_elements(desc, stats)
+
+# http://stackoverflow.com/questions/815110/
+# http://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
+class memoized(object):
+    """Decorator that caches a function's return value each time it is called.
+    If called later with the same arguments, the cached value is returned, and
+    not re-evaluated.
+    """
+    def __init__(self, func):
+       self.func = func
+       self.cache = {}
+    def __call__(self, *args):
+       try:
+          return self.cache[args]
+       except KeyError:
+          value = self.func(*args)
+          self.cache[args] = value
+          return value
+       except TypeError:
+          # uncachable -- for instance, passing a list as an argument.
+          # Better to not cache than to blow up entirely.
+          return self.func(*args)
+    def __repr__(self):
+       """Return the function's docstring."""
+       return self.func.__doc__
+    def __get__(self, obj, objtype):
+       """Support instance methods."""
+       return functools.partial(self.__call__, obj)
+
+@memoized
+def allowed_elements(key):
+    """read XML version of the DTD to figure out allowed elements"""
+    return DTD.xpath(''.join(["/dtd/element[@name='", key, "']/content-model-expanded//element-name/@name"]))
+
+@memoized
+def allowed_attributes(key):
+    """read XML version of the DTD to figure out allowed attributes"""
+    return DTD.xpath(''.join(["/dtd/attlist[@name='", key, "']/attribute/@name"]))
 
 # main() idiom for importing into read-eval-print loop for debugging 
 if __name__ == "__main__":
